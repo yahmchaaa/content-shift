@@ -1,330 +1,368 @@
-     1|<!DOCTYPE html>
-     2|<html lang="en">
-     3|<head>
-     4|    <meta charset="UTF-8">
-     5|    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     6|    <title>ContentShift — One Post, Every Platform</title>
-     7|    <style>
-     8|        * { margin: 0; padding: 0; box-sizing: border-box; }
-     9|        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f0f0f; color: #e5e5e5; min-height: 100vh; }
-    10|        .container { max-width: 960px; margin: 0 auto; padding: 20px; }
-    11|        
-    12|        /* Header */
-    13|        .header { text-align: center; padding: 40px 0 20px; }
-    14|        .header h1 { font-size: 2.5rem; background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 8px; }
-    15|        .header p { color: #a3a3a3; font-size: 1.1rem; }
-    16|        
-    17|        /* Input Section */
-    18|        .input-section { background: #1a1a1a; border-radius: 16px; padding: 24px; margin: 24px 0; border: 1px solid #333; }
-    19|        .input-section h2 { font-size: 1.1rem; color: #d4d4d4; margin-bottom: 16px; }
-    20|        
-    21|        .source-type-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
-    22|        .source-type-tab { padding: 8px 16px; border-radius: 8px; border: 1px solid #333; background: #222; color: #a3a3a3; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
-    23|        .source-type-tab.active { background: #6366f1; color: white; border-color: #6366f1; }
-    24|        .source-type-tab:hover { background: #333; }
-    25|        
-    26|        textarea, input[type="text"], input[type="url"] { width: 100%; background: #0f0f0f; border: 1px solid #333; border-radius: 12px; padding: 16px; color: #e5e5e5; font-size: 1rem; font-family: inherit; resize: vertical; transition: border-color 0.2s; }
-    27|        textarea:focus, input:focus { outline: none; border-color: #6366f1; }
-    28|        textarea { min-height: 150px; }
-    29|        input[type="text"], input[type="url"] { min-height: 48px; }
-    30|        
-    31|        .placeholder-label { margin-bottom: 8px; display: block; color: #888; font-size: 0.85rem; }
-    32|        
-    33|        /* Platform Checkboxes */
-    34|        .platforms-section { margin: 20px 0; }
-    35|        .platforms-section h3 { font-size: 0.95rem; color: #a3a3a3; margin-bottom: 12px; }
-    36|        .platform-checks { display: flex; flex-wrap: wrap; gap: 10px; }
-    37|        .platform-check { display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 10px; border: 1px solid #333; background: #1a1a1a; cursor: pointer; transition: all 0.2s; user-select: none; }
-    38|        .platform-check:hover { background: #222; }
-    39|        .platform-check input { display: none; }
-    40|        .platform-check .check-box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid #555; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-    41|        .platform-check input:checked + .check-box { background: #6366f1; border-color: #6366f1; }
-    42|        .platform-check input:checked + .check-box::after { content: '✓'; color: white; font-size: 12px; }
-    43|        .platform-check .platform-icon { font-size: 1.2rem; }
-    44|        .platform-check .platform-name { font-size: 0.9rem; color: #e5e5e5; }
-    45|        
-    46|        /* Generate Button */
-    47|        .generate-btn { width: 100%; padding: 16px; margin: 20px 0; border: none; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-    48|        .generate-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3); }
-    49|        .generate-btn:disabled { opacity: 0.5; cursor: none; transform: none; box-shadow: none; }
-    50|        
-    51|        /* Spinner */
-    52|        .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
-    53|        .generating .spinner { display: block; }
-    54|        @keyframes spin { to { transform: rotate(360deg); } }
-    55|        
-    56|        /* Results */
-    57|        .results { margin-top: 24px; }
-    58|        .results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-    59|        .results-header h2 { font-size: 1.3rem; color: #d4d4d4; }
-    60|        .copy-all-btn { padding: 8px 16px; background: #333; color: #e5e5e5; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-    61|        .copy-all-btn:hover { background: #444; }
-    62|        
-    63|        .platform-result { background: #1a1a1a; border-radius: 16px; border: 1px solid #333; margin-bottom: 16px; overflow: hidden; }
-    64|        .platform-result-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; background: #222; cursor: pointer; user-select: none; }
-    65|        .platform-result-header h3 { display: flex; align-items: center; gap: 10px; font-size: 1rem; }
-    66|        .platform-result-header .copy-btn { padding: 6px 12px; background: #333; color: #a3a3a3; border: none; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
-    67|        .platform-result-header .copy-btn:hover { background: #444; }
-    68|        .platform-result-body { padding: 20px; white-space: pre-wrap; font-size: 0.95rem; line-height: 1.7; color: #d4d4d4; display: none; }
-    69|        .platform-result-body.open { display: block; }
-    70|        
-    71|        /* Error */
-    72|        .error-message { background: #1a0a0a; border: 1px solid #dc2626; border-radius: 12px; padding: 16px; margin: 16px 0; color: #fca5a5; }
-    73|        
-    74|        /* Stats */
-    75|        .stats { text-align: center; margin: 30px 0; padding: 20px; background: #1a1a1a; border-radius: 12px; }
-    76|        .stats-grid { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
-    77|        .stat-item h4 { font-size: 1.5rem; color: #6366f1; }
-    78|        .stat-item p { color: #777; font-size: 0.85rem; }
-    79|        
-    80|        /* Footer */
-    81|        .footer { text-align: center; padding: 40px 0 20px; color: #555; font-size: 0.85rem; }
-    82|        .cta-section { background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 16px; padding: 30px; text-align: center; margin: 24px 0; border: 1px solid #333; }
-    83|        .cta-section h2 { font-size: 1.3rem; margin-bottom: 8px; }
-    84|        .cta-section p { color: #a3a3a3; margin-bottom: 20px; }
-    85|        .cta-btn { display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #6366f1, #a855f7); color: white; text-decoration: none; border-radius: 10px; font-weight: 600; }
-    86|        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3); }
-    87|        
-    88|        @media (max-width: 640px) {
-    89|            .header h1 { font-size: 1.8rem; }
-    90|            .source-type-tabs { flex-wrap: wrap; }
-    91|            .container { padding: 12px; }
-    92|            .stats-grid { gap: 20px; }
-    93|        }
-    94|    </style>
-    95|</head>
-    96|<body>
-    97|    <div class="container">
-    98|        <div class="header">
-    99|            <h1>⚡ ContentShift</h1>
-   100|            <p>One piece of content. Every platform. Done in 30 seconds.</p>
-   101|        </div>
-   102|
-   103|        <div class="stats">
-   104|            <div class="stats-grid">
-   105|                <div class="stat-item"><h4>5</h4><p>Platforms</p></div>
-   106|                <div class="stat-item"><h4>30s</h4><p>Avg. generation</p></div>
-   107|                <div class="stat-item"><h4>100%</h4><p>Platform-optimized</p></div>
-   108|            </div>
-   109|        </div>
-   110|
-   111|        <div class="input-section">
-   112|            <h2>📝 Your Content</h2>
-   113|            <div class="source-type-tabs">
-   114|                <button class="source-type-tab active" onclick="setSource('text')" id="tab-text">Text</button>
-   115|                <button class="source-type-tab" onclick="setSource('url')" id="tab-url">Article URL</button>
-   116|                <button class="source-type-tab" onclick="setSource('youtube')" id="tab-youtube">YouTube Video</button>
-   117|            </div>
-   118|            
-   119|            <div id="source-text" class="source-input">
-   120|                <label class="placeholder-label">Paste your text, blog post, or any content below:</label>
-   121|                <textarea id="content-input" placeholder="Paste a blog post, article, video transcript, or any text you want repurposed..."></textarea>
-   122|            </div>
-   123|            <div id="source-url" class="source-input" style="display: none;">
-   124|                <label class="placeholder-label">Paste any article URL:</label>
-   125|                <input type="url" id="url-input" placeholder="https://example.com/blog/post">
-   126|            </div>
-   127|            <div id="source-youtube" class="source-input" style="display: none;">
-   128|                <label class="placeholder-label">Paste a YouTube video URL:</label>
-   129|                <input type="url" id="youtube-input" placeholder="https://www.youtube.com/watch?v=...">
-   130|            </div>
-   131|
-   132|            <div class="platforms-section">
-   133|                <h3>Generate Content For:</h3>
-   134|                <div class="platform-checks">
-   135|                    <label class="platform-check">
-   136|                        <input type="checkbox" value="twitter" checked>
-   137|                        <span class="check-box"></span>
-   138|                        <span class="platform-icon">🐦</span>
-   139|                        <span class="platform-name">Twitter/X Thread</span>
-   140|                    </label>
-   141|                    <label class="platform-check">
-   142|                        <input type="checkbox" value="linkedin" checked>
-   143|                        <span class="check-box"></span>
-   144|                        <span class="platform-icon">💼</span>
-   145|                        <span class="platform-name">LinkedIn Post</span>
-   146|                    </label>
-   147|                    <label class="platform-check">
-   148|                        <input type="checkbox" value="instagram" checked>
-   149|                        <span class="check-box"></span>
-   150|                        <span class="platform-icon">📸</span>
-   151|                        <span class="platform-name">Instagram</span>
-   152|                    </label>
-   153|                    <label class="platform-check">
-   154|                        <input type="checkbox" value="tiktok" checked>
-   155|                        <span class="check-box"></span>
-   156|                        <span class="platform-icon">🎬</span>
-   157|                        <span class="platform-name">TikTok/Reels</span>
-   158|                    </label>
-   159|                    <label class="platform-check">
-   160|                        <input type="checkbox" value="newsletter" checked>
-   161|                        <span class="check-box"></span>
-   162|                        <span class="platform-icon">📧</span>
-   163|                        <span class="platform-name">Newsletter</span>
-   164|                    </label>
-   165|                </div>
-   166|            </div>
-   167|
-   168|            <button class="generate-btn" id="generate-btn" onclick="generate()">
-   169|                <div class="spinner"></div>
-   170|                <span id="btn-text">⚡ Generate All Content</span>
-   171|            </button>
-   172|        </div>
-   173|
-   174|        <div id="error-display"></div>
-   175|        
-   176|        <div class="results" id="results-section" style="display: none;">
-   177|            <div class="results-header">
-   178|                <h2>✨ Your Repurposed Content</h2>
-   179|                <button class="copy-all-btn" onclick="copyAll()">📋 Copy All</button>
-   180|            </div>
-   181|            <div id="results-container"></div>
-   182|        </div>
-   183|
-   184|        <div class="cta-section">
-   185|            <h2>Want unlimited repurposing?</h2>
-   186|            <p>Get unlimited content repurposing for just $49/month. Save hours every week.</p>
-   187|            <a href="#" class="cta-btn" onclick="alert('Coming soon! Join the waitlist: hello@contentshift.app')">Join Waitlist</a>
-   188|        </div>
-   189|
-   190|        <div class="footer">
-   191|            <p>Built with AI • ContentShift © 2026</p>
-   192|        </div>
-   193|    </div>
-   194|
-   195|    <script>
-   196|        let currentSource = 'text';
-   197|
-   198|        function setSource(type) {
-   199|            currentSource = type;
-   200|            document.querySelectorAll('.source-type-tab').forEach(t => t.classList.remove('active'));
-   201|            document.getElementById('tab-' + type).classList.add('active');
-   202|            document.querySelectorAll('.source-input').forEach(s => s.style.display = 'none');
-   203|            document.getElementById('source-' + type).style.display = 'block';
-   204|        }
-   205|
-   206|        function getSelectedPlatforms() {
-   207|            const checked = document.querySelectorAll('.platform-check input:checked');
-   208|            return Array.from(checked).map(cb => cb.value);
-   209|        }
-   210|
-   211|        function getSource() {
-   212|            if (currentSource === 'text') return document.getElementById('content-input').value.trim();
-   213|            if (currentSource === 'url') return document.getElementById('url-input').value.trim();
-   214|            if (currentSource === 'youtube') return document.getElementById('youtube-input').value.trim();
-   215|            return '';
-   216|        }
-   217|
-   218|        async function generate() {
-   219|            const source = getSource();
-   220|            const platforms = getSelectedPlatforms();
-   221|            const btn = document.getElementById('generate-btn');
-   222|            const btnText = document.getElementById('btn-text');
-   223|            const errorDisplay = document.getElementById('error-display');
-   224|            const resultsSection = document.getElementById('results-section');
-   225|
-   226|            // Validate
-   227|            if (!source) {
-   228|                errorDisplay.innerHTML = '<div class="error-message">Please enter content, a URL, or a YouTube link.</div>';
-   229|                return;
-   230|            }
-   231|            if (platforms.length === 0) {
-   232|                errorDisplay.innerHTML = '<div class="error-message">Please select at least one platform.</div>';
-   233|                return;
-   234|            }
-   235|
-   236|            // Set loading state
-   237|            errorDisplay.innerHTML = '';
-   238|            resultsSection.style.display = 'none';
-   239|            btn.disabled = true;
-   240|            btn.classList.add('generating');
-   241|            btnText.textContent = 'Generating...';
-   242|
-   243|            try {
-   244|                const response = await fetch('http://localhost:8000/repurpose', {
-   245|                    method: 'POST',
-   246|                    headers: { 'Content-Type': 'application/json' },
-   247|                    body: JSON.stringify({ source_type: currentSource, source: source, platforms: platforms }),
-   248|                });
-   249|
-   250|                if (!response.ok) {
-   251|                    const error = await response.json();
-   252|                    throw new Error(error.detail || 'Something went wrong. Please try again.');
-   253|                }
-   254|
-   255|                const data = await response.json();
-   256|                renderResults(data);
-   257|            } catch (err) {
-   258|                errorDisplay.innerHTML = `<div class="error-message">❌ ${err.message}</div>`;
-   259|            } finally {
-   260|                btn.disabled = false;
-   261|                btn.classList.remove('generating');
-   262|                btnText.textContent = '⚡ Generate All Content';
-   263|            }
-   264|        }
-   265|
-   266|        function renderResults(data) {
-   267|            const resultsSection = document.getElementById('results-section');
-   268|            const resultsContainer = document.getElementById('results-container');
-   269|            
-   270|            const platformIcons = { twitter: '🐦', linkedin: '💼', instagram: '📸', tiktok: '🎬', newsletter: '📧' };
-   271|            const platformNames = { twitter: 'Twitter/X Thread', linkedin: 'LinkedIn Post', instagram: 'Instagram', tiktok: 'TikTok/Reels Script', newsletter: 'Newsletter' };
-   272|
-   273|            let html = '';
-   274|            
-   275|            for (const [platform, content] of Object.entries(data.platforms)) {
-   276|                const id = 'result-' + platform;
-   277|                html += `
-   278|                    <div class="platform-result">
-   279|                        <div class="platform-result-header" onclick="togglePlatform('${id}')">
-   280|                            <h3><span class="platform-icon">${platformIcons[platform] || '📝'}</span> ${platformNames[platform] || platform}</h3>
-   281|                            <button class="copy-btn" onclick="event.stopPropagation(); copyPlatform('${id}')">📋 Copy</button>
-   282|                        </div>
-   283|                        <div class="platform-result-body" id="${id}">${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
-   284|                    </div>
-   285|                `;
-   286|            }
-   287|
-   288|            resultsContainer.innerHTML = html;
-   289|            resultsSection.style.display = 'block';
-   290|
-   291|            // Open the first result by default
-   292|            const firstResult = resultsContainer.querySelector('.platform-result-body');
-   293|            if (firstResult) firstResult.classList.add('open');
-   294|
-   295|            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-   296|        }
-   297|
-   298|        function togglePlatform(id) {
-   299|            const body = document.getElementById(id);
-   300|            body.classList.toggle('open');
-   301|        }
-   302|
-   303|        function copyPlatform(id) {
-   304|            const body = document.getElementById(id);
-   305|            navigator.clipboard.writeText(body.innerText).then(() => {
-   306|                const btn = body.closest('.platform-result').querySelector('.copy-btn');
-   307|                const original = btn.textContent;
-   308|                btn.textContent = '✓ Copied!';
-   309|                setTimeout(() => btn.textContent = original, 2000);
-   310|            });
-   311|        }
-   312|
-   313|        function copyAll() {
-   314|            const bodies = document.querySelectorAll('.platform-result-body');
-   315|            const allText = Array.from(bodies)
-   316|                .map(body => {
-   317|                    const header = body.closest('.platform-result').querySelector('h3').textContent.trim();
-   318|                    return `=== ${header} ===\n\n${body.innerText}`;
-   319|                })
-   320|                .join('\n\n');
-   321|            navigator.clipboard.writeText(allText);
-   322|            const btn = document.querySelector('.copy-all-btn');
-   323|            const original = btn.textContent;
-   324|            btn.textContent = '✓ Copied all!';
-   325|            setTimeout(() => btn.textContent = original, 2000);
-   326|        }
-   327|    </script>
-   328|</body>
-   329|</html>
-   330|
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ContentShift — One Post, Every Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #050508; color: #e5e5e5; min-height: 100vh; }
+
+        /* Nav */
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 20px 40px; border-bottom: 1px solid #1a1a2e; }
+        .logo { font-size: 1.3rem; font-weight: 800; background: linear-gradient(135deg, #6366f1, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-links { display: flex; gap: 24px; align-items: center; }
+        .nav-link { color: #888; font-size: 0.9rem; text-decoration: none; transition: color 0.2s; }
+        .nav-link:hover { color: #e5e5e5; }
+        .nav-cta { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white !important; padding: 8px 18px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; }
+
+        /* Hero */
+        .hero { text-align: center; padding: 80px 20px 50px; max-width: 800px; margin: 0 auto; }
+        .badge { display: inline-block; background: rgba(99,102,241,0.15); border: 1px solid rgba(99,102,241,0.3); color: #a5b4fc; padding: 6px 16px; border-radius: 100px; font-size: 0.8rem; font-weight: 500; margin-bottom: 24px; }
+        .hero h1 { font-size: 3.5rem; font-weight: 800; line-height: 1.1; margin-bottom: 20px; }
+        .hero h1 span { background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { color: #888; font-size: 1.15rem; line-height: 1.7; max-width: 560px; margin: 0 auto 40px; }
+        .hero-stats { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+        .hero-stat { text-align: center; }
+        .hero-stat strong { display: block; font-size: 1.8rem; font-weight: 800; color: #fff; }
+        .hero-stat span { font-size: 0.8rem; color: #666; }
+
+        /* Main App */
+        .app { max-width: 900px; margin: 0 auto; padding: 0 20px 80px; }
+
+        /* Card */
+        .card { background: #0e0e18; border: 1px solid #1e1e35; border-radius: 20px; padding: 28px; margin-bottom: 20px; }
+        .card-title { font-size: 0.85rem; font-weight: 600; color: #6366f1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 6px; background: #080810; padding: 4px; border-radius: 12px; margin-bottom: 20px; }
+        .tab { flex: 1; padding: 10px; border: none; border-radius: 9px; background: transparent; color: #666; cursor: pointer; font-size: 0.9rem; font-weight: 500; font-family: inherit; transition: all 0.2s; }
+        .tab.active { background: #1e1e35; color: #e5e5e5; }
+        .tab:hover:not(.active) { color: #aaa; }
+
+        /* Inputs */
+        textarea, input[type="url"] {
+            width: 100%; background: #080810; border: 1px solid #1e1e35; border-radius: 12px;
+            padding: 16px; color: #e5e5e5; font-size: 0.95rem; font-family: inherit;
+            resize: vertical; transition: border-color 0.2s; outline: none;
+        }
+        textarea { min-height: 160px; line-height: 1.6; }
+        input[type="url"] { min-height: 52px; }
+        textarea:focus, input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
+        ::placeholder { color: #444; }
+
+        /* Platforms */
+        .platforms-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; margin-top: 6px; }
+        .platform-item { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 12px; border: 1px solid #1e1e35; background: #080810; cursor: pointer; transition: all 0.2s; user-select: none; }
+        .platform-item:hover { border-color: #333; background: #0e0e18; }
+        .platform-item.selected { border-color: #6366f1; background: rgba(99,102,241,0.08); }
+        .platform-item input { display: none; }
+        .check { width: 18px; height: 18px; border-radius: 5px; border: 2px solid #333; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-size: 11px; }
+        .platform-item.selected .check { background: #6366f1; border-color: #6366f1; color: white; }
+        .platform-item.selected .check::after { content: '✓'; }
+        .p-icon { font-size: 1.1rem; }
+        .p-name { font-size: 0.85rem; color: #ccc; font-weight: 500; }
+
+        /* Generate Button */
+        .gen-btn { width: 100%; padding: 18px; border: none; border-radius: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; font-family: inherit; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 0.02em; margin-top: 6px; }
+        .gen-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(99,102,241,0.35); }
+        .gen-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+        .gen-btn.loading .spinner { display: block; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Results */
+        .result-card { background: #0e0e18; border: 1px solid #1e1e35; border-radius: 16px; margin-bottom: 12px; overflow: hidden; transition: border-color 0.2s; }
+        .result-card:hover { border-color: #2e2e50; }
+        .result-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; }
+        .result-title { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; font-weight: 600; }
+        .result-badge { font-size: 0.7rem; background: rgba(99,102,241,0.15); color: #a5b4fc; padding: 3px 8px; border-radius: 100px; font-weight: 500; }
+        .copy-btn { padding: 6px 14px; background: #1a1a2e; color: #888; border: 1px solid #2e2e50; border-radius: 8px; cursor: pointer; font-size: 0.78rem; font-family: inherit; transition: all 0.2s; }
+        .copy-btn:hover { background: #2e2e50; color: #e5e5e5; }
+        .result-body { padding: 0 20px; max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; }
+        .result-body.open { max-height: 600px; padding: 0 20px 20px; }
+        .result-body pre { white-space: pre-wrap; font-size: 0.9rem; line-height: 1.75; color: #ccc; font-family: inherit; }
+
+        /* Error */
+        .error { background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.3); border-radius: 12px; padding: 14px 18px; color: #fca5a5; font-size: 0.9rem; margin-bottom: 16px; }
+
+        /* Pricing */
+        .pricing { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 60px; }
+        .plan { background: #0e0e18; border: 1px solid #1e1e35; border-radius: 20px; padding: 28px; position: relative; }
+        .plan.popular { border-color: #6366f1; }
+        .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; padding: 4px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+        .plan-name { font-size: 0.8rem; font-weight: 600; color: #6366f1; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+        .plan-price { font-size: 2.5rem; font-weight: 800; margin-bottom: 4px; }
+        .plan-price span { font-size: 1rem; color: #666; font-weight: 400; }
+        .plan-desc { color: #666; font-size: 0.85rem; margin-bottom: 20px; }
+        .plan-features { list-style: none; margin-bottom: 24px; }
+        .plan-features li { font-size: 0.88rem; color: #aaa; padding: 6px 0; display: flex; align-items: center; gap: 8px; }
+        .plan-features li::before { content: '✓'; color: #6366f1; font-weight: 700; }
+        .plan-btn { width: 100%; padding: 13px; border: none; border-radius: 10px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+        .plan-btn.primary { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: white; }
+        .plan-btn.secondary { background: #1a1a2e; color: #a5b4fc; border: 1px solid #2e2e50; }
+        .plan-btn:hover { transform: translateY(-1px); }
+
+        /* Footer */
+        footer { text-align: center; padding: 40px 20px; color: #444; font-size: 0.82rem; border-top: 1px solid #0e0e18; }
+
+        @media (max-width: 640px) {
+            nav { padding: 16px 20px; }
+            .nav-links { display: none; }
+            .hero h1 { font-size: 2.2rem; }
+            .hero { padding: 50px 20px 30px; }
+            .pricing { grid-template-columns: 1fr; }
+            .hero-stats { gap: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">⚡ ContentShift</div>
+    <div class="nav-links">
+        <a href="#pricing" class="nav-link">Pricing</a>
+        <a href="#pricing" class="nav-link nav-cta">Get Started</a>
+    </div>
+</nav>
+
+<div class="hero">
+    <div class="badge">✨ AI-Powered Content Repurposing</div>
+    <h1>One post.<br><span>Every platform.</span></h1>
+    <p>Paste any content, article, or YouTube video and get platform-ready posts for Twitter, LinkedIn, Instagram, TikTok, and email — in seconds.</p>
+    <div class="hero-stats">
+        <div class="hero-stat"><strong>5</strong><span>Platforms</span></div>
+        <div class="hero-stat"><strong>30s</strong><span>Generation Time</span></div>
+        <div class="hero-stat"><strong>10x</strong><span>Faster than Manual</span></div>
+    </div>
+</div>
+
+<div class="app">
+
+    <!-- Input Card -->
+    <div class="card">
+        <div class="card-title">Your Content</div>
+        <div class="tabs">
+            <button class="tab active" onclick="setTab('text', this)">📝 Text</button>
+            <button class="tab" onclick="setTab('url', this)">🔗 Article URL</button>
+            <button class="tab" onclick="setTab('youtube', this)">▶️ YouTube</button>
+        </div>
+
+        <div id="input-text">
+            <textarea id="content-text" placeholder="Paste a blog post, article, idea, or any content you want to repurpose..."></textarea>
+        </div>
+        <div id="input-url" style="display:none">
+            <input type="url" id="content-url" placeholder="https://example.com/your-article">
+        </div>
+        <div id="input-youtube" style="display:none">
+            <input type="url" id="content-youtube" placeholder="https://www.youtube.com/watch?v=...">
+        </div>
+    </div>
+
+    <!-- Platforms Card -->
+    <div class="card">
+        <div class="card-title">Generate For</div>
+        <div class="platforms-grid">
+            <label class="platform-item selected" onclick="togglePlatform(this)">
+                <input type="checkbox" value="twitter" checked>
+                <div class="check"></div>
+                <span class="p-icon">🐦</span>
+                <span class="p-name">Twitter/X</span>
+            </label>
+            <label class="platform-item selected" onclick="togglePlatform(this)">
+                <input type="checkbox" value="linkedin" checked>
+                <div class="check"></div>
+                <span class="p-icon">💼</span>
+                <span class="p-name">LinkedIn</span>
+            </label>
+            <label class="platform-item selected" onclick="togglePlatform(this)">
+                <input type="checkbox" value="instagram" checked>
+                <div class="check"></div>
+                <span class="p-icon">📸</span>
+                <span class="p-name">Instagram</span>
+            </label>
+            <label class="platform-item selected" onclick="togglePlatform(this)">
+                <input type="checkbox" value="tiktok" checked>
+                <div class="check"></div>
+                <span class="p-icon">🎬</span>
+                <span class="p-name">TikTok/Reels</span>
+            </label>
+            <label class="platform-item selected" onclick="togglePlatform(this)">
+                <input type="checkbox" value="newsletter" checked>
+                <div class="check"></div>
+                <span class="p-icon">📧</span>
+                <span class="p-name">Newsletter</span>
+            </label>
+        </div>
+
+        <button class="gen-btn" id="gen-btn" onclick="generate()">
+            <div class="spinner"></div>
+            <span id="btn-label">⚡ Generate Content</span>
+        </button>
+    </div>
+
+    <!-- Error -->
+    <div id="error-box"></div>
+
+    <!-- Results -->
+    <div id="results" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <div style="font-size:1.1rem;font-weight:700">✨ Your Content</div>
+            <button class="copy-btn" onclick="copyAll()">📋 Copy All</button>
+        </div>
+        <div id="results-list"></div>
+    </div>
+
+    <!-- Pricing -->
+    <div id="pricing" style="margin-top:80px">
+        <div style="text-align:center;margin-bottom:40px">
+            <div class="badge">Simple Pricing</div>
+            <h2 style="font-size:2rem;font-weight:800;margin-top:16px">Save hours every week</h2>
+            <p style="color:#666;margin-top:10px">One subscription. All platforms. Unlimited content.</p>
+        </div>
+        <div class="pricing">
+            <div class="plan">
+                <div class="plan-name">Starter</div>
+                <div class="plan-price">$49<span>/mo</span></div>
+                <div class="plan-desc">Perfect for solo creators</div>
+                <ul class="plan-features">
+                    <li>50 generations/month</li>
+                    <li>All 5 platforms</li>
+                    <li>URL & YouTube extraction</li>
+                    <li>Email support</li>
+                </ul>
+                <button class="plan-btn secondary" onclick="alert('Coming soon!')">Get Started</button>
+            </div>
+            <div class="plan popular">
+                <div class="popular-badge">Most Popular</div>
+                <div class="plan-name">Pro</div>
+                <div class="plan-price">$97<span>/mo</span></div>
+                <div class="plan-desc">For agencies & power users</div>
+                <ul class="plan-features">
+                    <li>Unlimited generations</li>
+                    <li>All 5 platforms</li>
+                    <li>Priority processing</li>
+                    <li>Custom brand voice</li>
+                    <li>Priority support</li>
+                </ul>
+                <button class="plan-btn primary" onclick="alert('Coming soon!')">Get Pro</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<footer>ContentShift © 2026 · Built with AI · Made for creators</footer>
+
+<script>
+    let currentTab = 'text';
+    const icons = { twitter:'🐦', linkedin:'💼', instagram:'📸', tiktok:'🎬', newsletter:'📧' };
+    const names = { twitter:'Twitter/X Thread', linkedin:'LinkedIn Post', instagram:'Instagram Caption', tiktok:'TikTok Script', newsletter:'Newsletter' };
+
+    function setTab(type, btn) {
+        currentTab = type;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        ['text','url','youtube'].forEach(t => document.getElementById('input-' + t).style.display = t === type ? 'block' : 'none');
+    }
+
+    function togglePlatform(el) {
+        el.classList.toggle('selected');
+        el.querySelector('input').checked = el.classList.contains('selected');
+    }
+
+    function getContent() {
+        if (currentTab === 'text') return document.getElementById('content-text').value.trim();
+        if (currentTab === 'url') return document.getElementById('content-url').value.trim();
+        return document.getElementById('content-youtube').value.trim();
+    }
+
+    function getPlatforms() {
+        return Array.from(document.querySelectorAll('.platform-item.selected input')).map(i => i.value);
+    }
+
+    async function generate() {
+        const content = getContent();
+        const platforms = getPlatforms();
+        const btn = document.getElementById('gen-btn');
+        const label = document.getElementById('btn-label');
+        const errorBox = document.getElementById('error-box');
+
+        if (!content) return showError('Please enter some content first.');
+        if (!platforms.length) return showError('Please select at least one platform.');
+
+        errorBox.innerHTML = '';
+        document.getElementById('results').style.display = 'none';
+        btn.disabled = true;
+        btn.classList.add('loading');
+        label.textContent = 'Generating...';
+
+        try {
+            const res = await fetch('/repurpose', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ source_type: currentTab, source: content, platforms })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Generation failed. Please try again.');
+            }
+            const data = await res.json();
+            renderResults(data);
+        } catch (e) {
+            showError(e.message);
+        } finally {
+            btn.disabled = false;
+            btn.classList.remove('loading');
+            label.textContent = '⚡ Generate Content';
+        }
+    }
+
+    function renderResults(data) {
+        const list = document.getElementById('results-list');
+        list.innerHTML = Object.entries(data.platforms).map(([p, c]) => `
+            <div class="result-card">
+                <div class="result-header" onclick="toggleResult('r-${p}')">
+                    <div class="result-title">
+                        <span>${icons[p] || '📝'}</span>
+                        <span>${names[p] || p}</span>
+                        <span class="result-badge">Ready</span>
+                    </div>
+                    <button class="copy-btn" onclick="event.stopPropagation();copyText('r-${p}')">📋 Copy</button>
+                </div>
+                <div class="result-body open" id="r-${p}"><pre>${c.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre></div>
+            </div>
+        `).join('');
+        document.getElementById('results').style.display = 'block';
+        document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleResult(id) {
+        document.getElementById(id).classList.toggle('open');
+    }
+
+    function copyText(id) {
+        navigator.clipboard.writeText(document.getElementById(id).innerText);
+        const btn = document.getElementById(id).closest('.result-card').querySelector('.copy-btn');
+        btn.textContent = '✓ Copied!';
+        setTimeout(() => btn.textContent = '📋 Copy', 2000);
+    }
+
+    function copyAll() {
+        const all = Array.from(document.querySelectorAll('.result-body')).map(b => {
+            const title = b.closest('.result-card').querySelector('.result-title span:nth-child(2)').textContent;
+            return `=== ${title} ===\n\n${b.innerText}`;
+        }).join('\n\n---\n\n');
+        navigator.clipboard.writeText(all);
+        const btn = document.querySelector('.copy-all-btn') || document.querySelector('[onclick="copyAll()"]');
+        btn.textContent = '✓ Copied all!';
+        setTimeout(() => btn.textContent = '📋 Copy All', 2000);
+    }
+
+    function showError(msg) {
+        document.getElementById('error-box').innerHTML = `<div class="error">❌ ${msg}</div>`;
+    }
+</script>
+</body>
+</html>
