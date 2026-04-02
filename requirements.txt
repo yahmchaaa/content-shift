@@ -1,0 +1,8 @@
+     1|fastapi==0.115.6
+     2|uvicorn[standard]==0.34.0
+     3|httpx==0.28.1
+     4|beautifulsoup4==4.12.3
+     5|youtube-transcript-api==0.6.1
+     6|pydantic==2.10.4
+     7|python-dotenv==1.0.1
+     8|
