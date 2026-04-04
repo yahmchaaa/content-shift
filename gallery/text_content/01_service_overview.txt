@@ -1,0 +1,1 @@
+{'title': 'ContentShift Service', 'content': 'Transform ONE piece of content\ninto FIVE platform-optimized posts:\n• Twitter/X Thread\n• LinkedIn Post\n• Instagram Caption\n• TikTok/Reels Script\n• Newsletter Snippet', 'bottom_banner': 'AI-Powered • Human Quality Control • 24-48hr Delivery'}
